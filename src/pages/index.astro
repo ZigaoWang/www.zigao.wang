@@ -10,6 +10,7 @@ import { ogImageFor } from '../utils/og';
 import profileImg from '../assets/profile.png';
 import avoidxrayImg from '../assets/projects/avoidxray.webp';
 import ferryImg from '../assets/projects/ferry.webp';
+import reedarImg from '../assets/projects/reedar.webp';
 import z1chatImg from '../assets/projects/z1chat.webp';
 import canonAe1Img from '../assets/cameras/canon-ae1.webp';
 import yts480Img from '../assets/gear/yts480.png';
@@ -42,12 +43,22 @@ const featuredProjects = [
 		detail: 'Drop images on the window and it writes a smaller file next to the original. It tries AVIF, WebP, JPEG and PNG, measures them, and keeps the smallest that still looks right.',
 	},
 	{
+		name: 'Reedar',
+		url: 'https://reedar.app',
+		src: 'https://github.com/ZigaoWang/reedar',
+		img: reedarImg,
+		imgPosition: 'top',
+		tag: 'iOS',
+		tagline: 'A reed tracker for saxophone players.',
+		detail: 'Log what you play, retire reeds when they are done, and find out how long your reeds actually last. No account, no subscription, works offline.',
+	},
+	{
 		name: 'z1.chat',
+		tag: 'Web',
 		url: 'https://z1.chat',
 		src: 'https://github.com/ZigaoWang/z1.chat',
 		img: z1chatImg,
 		imgPosition: 'top',
-		tag: 'Web',
 		tagline: 'A full AI chat platform built from scratch.',
 		detail: 'Multiple models, cross-chat memory, web search, a sandbox that runs code, and artifacts that render HTML and diagrams. Pay-as-you-go, no subscription.',
 	},
