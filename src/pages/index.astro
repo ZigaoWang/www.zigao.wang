@@ -34,8 +34,8 @@ const featuredProjects = [
 	{
 		name: 'Ferry',
 		url: 'https://ferry.zigao.wang',
-		buy: 'https://www.creem.io/checkout/prod_6dHcQuXSb1SfrDHEDPWwX7/ch_6HoIYoCMkTV0utqvXYKoRq',
-		buyLabel: 'Buy, $12',
+		cta: 'https://www.creem.io/checkout/prod_6dHcQuXSb1SfrDHEDPWwX7/ch_6HoIYoCMkTV0utqvXYKoRq',
+		ctaLabel: 'Buy, $12',
 		img: ferryImg,
 		imgPosition: 'top',
 		tag: 'Mac',
@@ -45,12 +45,14 @@ const featuredProjects = [
 	{
 		name: 'Reedar',
 		url: 'https://reedar.app',
+		cta: 'https://apps.apple.com/us/app/reedar-saxophone-reed-tracker/id6799631094',
+		ctaLabel: 'App Store',
 		src: 'https://github.com/ZigaoWang/reedar',
 		img: reedarImg,
 		imgPosition: 'top',
 		tag: 'iOS',
 		tagline: 'A reed tracker for saxophone players.',
-		detail: 'Log what you play, retire reeds when they are done, and find out how long your reeds actually last. No account, no subscription, works offline.',
+		detail: 'Log what you play, retire reeds when they are done, and find out how long your reeds actually last. Free, no account, no subscription, works offline.',
 	},
 	{
 		name: 'z1.chat',
@@ -134,7 +136,7 @@ const gearPreview = [
 								<p class="feat-detail">{p.detail}</p>
 								<div class="feat-links">
 									<a href={p.url} target="_blank" rel="noreferrer" class="feat-visit">Visit site</a>
-									{p.buy && <a href={p.buy} target="_blank" rel="noreferrer" class="feat-visit">{p.buyLabel}</a>}
+									{p.cta && <a href={p.cta} target="_blank" rel="noreferrer" class="feat-visit">{p.ctaLabel}</a>}
 									{p.src && (
 										<a href={p.src} target="_blank" rel="noreferrer" class="feat-src" aria-label={`${p.name} source on GitHub`}>
 											<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.7.5.5 5.6.5 12c0 5 3.3 9.3 7.9 10.8.6.1.8-.3.8-.5v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2 1-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.9 7.9-10.8C23.5 5.6 18.3.5 12 .5z"/></svg>
