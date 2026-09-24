@@ -85,7 +85,7 @@ const gearPreview = [
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={`${SITE_TITLE} | Student Developer & Maker in Shanghai`} description={SITE_DESCRIPTION} image={ogImage} />
+		<BaseHead title={`${SITE_TITLE} (王子高) | Student Developer & Maker in Shanghai`} description={SITE_DESCRIPTION} image={ogImage} />
 	</head>
 	<body>
 		<div class="hero">
@@ -105,6 +105,8 @@ const gearPreview = [
 				<div class="hero-text">
 					<h1>Zigao Wang</h1>
 					<p class="pron">
+						<span lang="zh-CN">王子高</span>
+						<span aria-hidden="true">·</span>
 						<span>zuh-GOW WONG</span>
 						<button class="play-btn" id="play-pron" aria-label="Play name pronunciation">
 							<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="currentColor"/></svg>
@@ -112,7 +114,7 @@ const gearPreview = [
 					</p>
 					<p class="tagline">Student developer and maker in Shanghai.</p>
 				</div>
-				<Image class="profile-pic" src={profileImg} alt="Zigao Wang" width={168} height={168} densities={[1, 2]} loading="eager" />
+				<Image class="profile-pic" src={profileImg} alt="Zigao Wang (王子高)" width={168} height={168} densities={[1, 2]} loading="eager" />
 			</div>
 		</div>
 		<audio id="pron-audio" src="/pronunciation.mp3" preload="none"></audio>
