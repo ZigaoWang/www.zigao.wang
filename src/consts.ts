@@ -9,7 +9,6 @@ export const AUTHOR = {
 	sameAs: [
 		"https://github.com/ZigaoWang",
 		"https://x.com/zigaow",
-		"https://www.instagram.com/zigaowang24/",
 	],
 };
 
