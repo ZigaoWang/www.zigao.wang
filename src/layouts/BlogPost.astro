@@ -219,8 +219,8 @@ const ogImage = `/og/${slug}.jpg`;
 		</script>
 
 		<script>
-			// Reading progress — deliberately independent of the TOC, which only
-			// renders above 1200px and only when a post has 3+ headings.
+			// Reading progress. Separate from the TOC, which only renders above
+			// 1200px and only when a post has 3+ headings.
 			const bar = document.getElementById('read-progress');
 			const article = document.getElementById('prose-content');
 			if (bar && article) {
@@ -327,8 +327,8 @@ const ogImage = `/og/${slug}.jpg`;
 </html>
 
 <style>
-	/* Reading progress — every post, every screen width. scaleX on a fixed
-	   element keeps this off the layout/paint path while scrolling. */
+	/* Reading progress bar. scaleX on a fixed element avoids layout and
+	   paint while scrolling. */
 	.read-progress {
 		position: fixed;
 		top: 0;
@@ -354,7 +354,7 @@ const ogImage = `/og/${slug}.jpg`;
 	}
 
 	/* ══════════════════════════════
-	   Desktop TOC — fixed right
+	   Desktop TOC: fixed right
 	   ══════════════════════════════ */
 	.toc {
 		position: fixed;
@@ -438,7 +438,7 @@ const ogImage = `/og/${slug}.jpg`;
 	.toc-top > * + * { margin-left: 0.35rem; }
 
 	/* ══════════════════════════════
-	   Mobile TOC — sticky bar
+	   Mobile TOC: sticky bar
 	   ══════════════════════════════ */
 	.mob-toc {
 		display: none;
@@ -688,8 +688,7 @@ const ogImage = `/og/${slug}.jpg`;
 		object-fit: cover;
 		display: block;
 	}
-	/* Book covers are portrait — letterbox them instead of cropping the
-	   middle out of the artwork. */
+	/* Book covers are portrait, so letterbox instead of cropping. */
 	.pn.is-book .pn-img :global(img) {
 		object-fit: contain;
 		padding: 0.6rem;
@@ -739,8 +738,8 @@ const ogImage = `/og/${slug}.jpg`;
 	}
 
 	/* Hero sits between the header and the body, full article width. */
-	/* 2:1 banner — the standard editorial hero shape. Natural aspect ran
-	   594px on the 4:3 photos, which dominated the top of every post. */
+	/* 2:1 banner. 4:3 photos at natural aspect were 594px tall and took
+	   over the top of every post. */
 	.post-hero { margin: 0 0 1.75rem; }
 	.post-hero :global(img) {
 		display: block;

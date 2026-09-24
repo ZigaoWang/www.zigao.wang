@@ -11,7 +11,7 @@
 	font-display: swap;
 }
 
-/* Inter — body text. latin-ext is gated by unicode-range, so it only
+/* Inter for body text. latin-ext is gated by unicode-range, so it only
    downloads when a page actually contains those characters. */
 @font-face {
 	font-family: "Inter";
@@ -51,7 +51,7 @@
 	font-display: swap;
 }
 
-/* Newsreader — headings. Every heading rule uses weight 400, so that's
+/* Newsreader for headings. Every heading rule uses weight 400, so that's
    the only cut shipped. */
 @font-face {
 	font-family: "Newsreader";
@@ -87,8 +87,7 @@
 	--link: #93b4f5;
 	--code-bg: #161616;
 
-	/* Tells the browser to render native UI — scrollbars, form controls,
-	   spinners — in dark mode instead of defaulting to light. */
+	/* Render native UI (scrollbars, form controls, spinners) in dark mode. */
 	color-scheme: dark;
 }
 

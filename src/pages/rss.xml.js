@@ -6,7 +6,7 @@ import { AUTHOR, BLOG_DESCRIPTION, BLOG_TITLE } from '../consts';
 
 /**
  * Feed readers fetch the XML on its own, so every URL inside the rendered
- * HTML has to be absolute — relative /_astro/… paths would 404 in a reader.
+ * HTML has to be absolute. Relative /_astro/ paths would 404 in a reader.
  */
 function absolutise(html, origin) {
 	return html
@@ -34,8 +34,7 @@ export async function GET(context) {
 			const { Content } = await render(post);
 			content = absolutise(await container.renderToString(Content), origin);
 		} catch {
-			// An interactive component that can't render standalone shouldn't
-			// take the whole feed down — fall back to the summary.
+			// If a component can't render standalone, fall back to the summary.
 			content = `<p>${post.data.description}</p>`;
 		}
 

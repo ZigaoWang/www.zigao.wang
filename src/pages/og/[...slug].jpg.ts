@@ -51,7 +51,7 @@ export const GET: APIRoute = async ({ props }) => {
 
 	let out: Buffer;
 	if (ratio >= OG_RATIO * 0.75) {
-		// Landscape enough to fill the card — crop to fit.
+		// Wide enough to fill the card, so crop to fit.
 		out = await sharp(buf)
 			.resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover', position: 'attention' })
 			.jpeg({ quality: 82, mozjpeg: true })

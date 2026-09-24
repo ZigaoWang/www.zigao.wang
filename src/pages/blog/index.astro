@@ -13,8 +13,7 @@ const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
-// Derived from the collection rather than hardcoded — a post in a new
-// category would previously have been unreachable from the filter bar.
+// Derived from the collection so new categories show up in the filter bar.
 const categories = [...new Set(posts.map((p) => p.data.category).filter(Boolean))]
 	.map((name) => ({
 		name: name as string,

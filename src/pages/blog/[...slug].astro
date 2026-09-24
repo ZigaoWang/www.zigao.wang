@@ -23,8 +23,8 @@ export async function getStaticPaths() {
 
 	// The newest and oldest posts have no neighbour on one side. Rather than
 	// leave a gap, fill it with the closest post in the same category (falling
-	// back to closest by date). Deterministic on purpose — a static build picks
-	// once, so randomness would just reshuffle arbitrarily on every deploy.
+	// back to closest by date). Not random, since that would reshuffle on
+	// every deploy.
 	const suggest = (post: CollectionEntry<'blog'>, taken: (string | undefined)[]) => {
 		const eligible = posts.filter((p) => p.id !== post.id && !taken.includes(p.id));
 		const sameCategory = eligible.filter((p) => p.data.category === post.data.category);
