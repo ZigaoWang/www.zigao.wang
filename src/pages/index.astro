@@ -11,7 +11,7 @@ import profileImg from '../assets/profile.png';
 import avoidxrayImg from '../assets/projects/avoidxray.webp';
 import ferryImg from '../assets/projects/ferry.webp';
 import reedarImg from '../assets/projects/reedar.webp';
-import z1chatImg from '../assets/projects/z1chat.webp';
+import zigzagImg from '../assets/projects/zigzag.webp';
 import canonAe1Img from '../assets/cameras/canon-ae1.webp';
 import yts480Img from '../assets/gear/yts480.png';
 import turntableImg from '../assets/gear/audio-technica-at-lp60xbt.webp';
@@ -21,6 +21,20 @@ const latestPosts = (await getCollection('blog'))
 	.slice(0, 5);
 
 const featuredProjects = [
+	{
+		name: 'Zigzag',
+		url: 'https://zigzagbrowser.com',
+		cta: 'https://zigzagbrowser.com/download',
+		ctaLabel: 'Download',
+		extra: 'https://www.producthunt.com/products/zigzag-browser',
+		extraLabel: 'Product Hunt',
+		src: 'https://github.com/ZigaoWang/zigzag',
+		img: zigzagImg,
+		imgPosition: 'top',
+		tag: 'Mac',
+		tagline: 'A lightweight browser for Mac, free and open source.',
+		detail: 'Tabs in a sidebar, grouped into spaces, with split view, peek, built-in ad blocking and Chrome extensions. Native Swift on WebKit, 18 MB, no account, no telemetry. Imports everything from Arc.',
+	},
 	{
 		name: 'AvoidXray',
 		url: 'https://avoidxray.com',
@@ -54,23 +68,14 @@ const featuredProjects = [
 		tagline: 'A reed tracker for saxophone players.',
 		detail: 'Log what you play, retire reeds when they are done, and find out how long your reeds actually last. Free, no account, no subscription, works offline.',
 	},
-	{
-		name: 'z1.chat',
-		tag: 'Web',
-		url: 'https://z1.chat',
-		src: 'https://github.com/ZigaoWang/z1.chat',
-		img: z1chatImg,
-		imgPosition: 'top',
-		tagline: 'A full AI chat platform built from scratch.',
-		detail: 'Multiple models, cross-chat memory, web search, a sandbox that runs code, and artifacts that render HTML and diagrams. Pay-as-you-go, no subscription.',
-	},
 ];
 
-const iosProjects = [
-	{ name: 'Zap Notes', url: 'https://apps.apple.com/us/app/zap-notes/id6740298881', urlLabel: 'App Store', desc: 'A multi-input AI note-taking app.', src: 'https://github.com/ZigaoWang/ZapNotesApp' },
-	{ name: 'Zap Know AI', url: 'https://apps.apple.com/us/app/zap-know-ai/id6745419831', urlLabel: 'App Store', desc: 'An AI research app backed by real papers.', src: 'https://github.com/ZigaoWang/ZapKnowAI-iOS' },
-	{ name: 'Go or No', url: 'https://apps.apple.com/us/app/go-or-no/id6744859953', urlLabel: 'App Store', desc: 'An AI-powered AR navigation app for visually impaired users.', src: 'https://github.com/ZigaoWang/go-or-no' },
-	{ name: 'Out Loud', url: 'https://out-loud.app/', urlLabel: 'Visit site', desc: 'A voice recording app with real-time transcription and AI analysis.', src: 'https://github.com/ZigaoWang/out-loud-app' },
+const otherProjects = [
+	{ name: 'z1.chat', type: 'Web', url: 'https://z1.chat', urlLabel: 'Visit site', desc: 'A full AI chat platform built from scratch.', src: 'https://github.com/ZigaoWang/z1.chat' },
+	{ name: 'Zap Notes', type: 'iOS', url: 'https://apps.apple.com/us/app/zap-notes/id6740298881', urlLabel: 'App Store', desc: 'A multi-input AI note-taking app.', src: 'https://github.com/ZigaoWang/ZapNotesApp' },
+	{ name: 'Zap Know AI', type: 'iOS', url: 'https://apps.apple.com/us/app/zap-know-ai/id6745419831', urlLabel: 'App Store', desc: 'An AI research app backed by real papers.', src: 'https://github.com/ZigaoWang/ZapKnowAI-iOS' },
+	{ name: 'Go or No', type: 'iOS', url: 'https://apps.apple.com/us/app/go-or-no/id6744859953', urlLabel: 'App Store', desc: 'An AI-powered AR navigation app for visually impaired users.', src: 'https://github.com/ZigaoWang/go-or-no' },
+	{ name: 'Out Loud', type: 'iOS', url: 'https://out-loud.app/', urlLabel: 'Visit site', desc: 'A voice recording app with real-time transcription and AI analysis.', src: 'https://github.com/ZigaoWang/out-loud-app' },
 ];
 
 const ogImage = await ogImageFor();
@@ -139,6 +144,7 @@ const gearPreview = [
 								<div class="feat-links">
 									<a href={p.url} target="_blank" rel="noreferrer" class="feat-visit">Visit site</a>
 									{p.cta && <a href={p.cta} target="_blank" rel="noreferrer" class="feat-visit">{p.ctaLabel}</a>}
+									{p.extra && <a href={p.extra} target="_blank" rel="noreferrer" class="feat-visit">{p.extraLabel}</a>}
 									{p.src && (
 										<a href={p.src} target="_blank" rel="noreferrer" class="feat-src" aria-label={`${p.name} source on GitHub`}>
 											<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5C5.7.5.5 5.6.5 12c0 5 3.3 9.3 7.9 10.8.6.1.8-.3.8-.5v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2 1-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.9 7.9-10.8C23.5 5.6 18.3.5 12 .5z"/></svg>
@@ -152,11 +158,11 @@ const gearPreview = [
 				</div>
 
 				<ul class="proj-list">
-					{iosProjects.map((p) => (
+					{otherProjects.map((p) => (
 						<li>
 							<span class="head">
 								<span class="name">{p.name}</span>
-								<span class="type">iOS</span>
+								<span class="type">{p.type}</span>
 							</span>
 							<span class="desc">{p.desc}</span>
 							<span class="src-group">
