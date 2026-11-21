@@ -12,8 +12,12 @@ import arcCardImg from '../../assets/building-zigzag/arc-card.png';
 import firstDemoImg from '../../assets/building-zigzag/zigzag-first-demo.png';
 import starsImg from '../../assets/building-zigzag/zigzag-stars.png';
 import usersImg from '../../assets/building-zigzag/zigzag-users.png';
+import statsImg from '../../assets/building-zigzag/zigzag-stats.png';
+import quotesEnImg from '../../assets/building-zigzag/zigzag-quotes-en.png';
+import quotesZhImg from '../../assets/building-zigzag/zigzag-quotes-zh.png';
 import Video from '../../components/Video.astro';
 import Quote from '../../components/Quote.astro';
+import Gallery from '../../components/Gallery.astro';
 import spacesVideo from '../../assets/building-zigzag/zigzag-spaces.mp4?url';
 import spacesPoster from '../../assets/building-zigzag/zigzag-spaces-poster.jpg';
 
@@ -250,6 +254,16 @@ Here are some of the messages people sent me. A lot of them came from people who
 <Quote name="tommypants" source="on WeChat" lang="zh-CN" translation="how is zigzag this good 😭">zigzag怎么这么好用啊😭</Quote>
 
 But the one that meant the most to me was my friend, the one who asked me to make this in the first place. He's been using Zigzag since the first week.
+
+I also turned the numbers and some of these messages into cards to post:
+
+<Gallery
+	images={[
+		{ src: statsImg, alt: "Zigzag stats card: about 500 Macs a day and 1,700+ downloads in the first two weeks, with Product Hunt and Show HN marked" },
+		{ src: quotesEnImg, alt: "Zigzag quote card in English with quotes from Charles, pyoio, Jonas Nowak and datarip" },
+		{ src: quotesZhImg, alt: "Zigzag quote card in Chinese with quotes from tommypants, Ray, Detrital and duyuxuan" },
+	]}
+/>
 
 ### Keeping up
 
