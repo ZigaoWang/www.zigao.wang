@@ -220,11 +220,15 @@ I posted on a Saturday night, which is Saturday morning in New York. Forty minut
 
 The comments were the best criticism I've had. Would a browser made by one high schooler still exist next year? Can something built with this much AI be trusted with passwords? Why does the world need another Arc clone? Those are fair questions and I don't think I fully answered them. But I think answering them honestly did more for Zigzag than the post itself.
 
+The password one is the one I think about most, because a browser that imports your passwords and cookies is a security product whether I like it or not. What I can say is this. Passwords live in the macOS Keychain, not in some file I made up. I read every pull request before it merges. There are over 3,000 tests. And when a security researcher privately reported real issues, I fixed them first and only then published the advisories. That doesn't make Zigzag perfect, and I'd be lying if I said it did. But it's not nobody checking, either.
+
 <Figure src={starsImg} alt="GitHub stars over the first month, with a step at Product Hunt and another at Hacker News"><Fragment slot="caption">Star history as of November 21, 2026. The live chart is on <a href="https://star-history.com/#ZigaoWang/zigzag&Date">star-history.com</a>.</Fragment></Figure>
 
 ### Counting users without telemetry
 
 I promised no analytics, but I still wanted to know if anyone was using it. It turns out I didn't need tracking. Every copy of Zigzag checks the update feed every few hours, and the request only says which version it is. Like any website, my server writes a normal access log, so I count how many different addresses fetched the feed each day. The counting keeps only the daily totals, and I don't look at the addresses themselves. It's not exact, since a laptop moving between home and school counts twice and an office behind one address counts once, but it's a fair estimate.
+
+I know "no telemetry" and "I count addresses" sound like they clash, so to be clear: the app sends nothing except its version number, which it needs to send to check for updates anyway. What I keep from the logs is one number per day. There's no script and no cookie on the website either.
 
 <Figure src={usersImg} alt="Line chart of Macs using Zigzag each day and bar chart of downloads, November 6 to 20, with Product Hunt and Hacker News marked" caption="Daily active Macs and downloads, November 6 to 20." />
 
@@ -255,7 +259,7 @@ Claude Code does most of the triage. It can read an issue, find the cause, write
 
 ## What I think now
 
-A month ago I thought building the thing was the hard part. For a project like this, it isn't anymore, for anyone. The tools will keep getting better and soon they'll do even more of what I do now, which probably means the deciding and the noticing will matter more over time, not less.
+A month ago I thought building the thing was the hard part. For a project like this, it isn't anymore, for anyone.
 
 I also learned that getting noticed is its own skill, and I'm only just starting to learn it. Every place I posted wanted something different, and the only thing that worked everywhere was being honest and fixing things fast.
 
