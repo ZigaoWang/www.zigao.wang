@@ -1,0 +1,232 @@
+---
+title: "I built a browser in a month"
+description: "Arc is shutting down, so I made my own Mac browser. How I built it, and what happened when I tried to get people to actually use it."
+pubDate: '2026-11-22'
+heroImage: '../../assets/building-zigzag/zigzag-hero.png'
+category: 'Tech'
+tags: ['zigzag', 'browser', 'macos', 'indie-dev', 'AI', 'launch']
+---
+
+import Figure from '../../components/Figure.astro';
+import arcCardImg from '../../assets/building-zigzag/arc-card.png';
+import firstDemoImg from '../../assets/building-zigzag/zigzag-first-demo.png';
+import starsImg from '../../assets/building-zigzag/zigzag-stars.png';
+import usersImg from '../../assets/building-zigzag/zigzag-users.png';
+
+I started building a browser on October 23. It's called [Zigzag](https://zigzagbrowser.com), it's a Mac app for people who are losing Arc on December 22, and a month later around 500 people use it every day. I'm in high school, I built it by myself in between classes and exams, and Claude Code wrote most of the code.
+
+That last part is what I keep thinking about. There are dozens of Arc clones right now, and most of them were made with the same tools I used. Some of them are really good. A lot of them feel like nobody was looking. I've spent the last month trying to work out what the difference is, and I don't think I've fully figured it out, but this post is my best attempt, along with everything I learned trying to get strangers to use something I made.
+
+The first half is about [how Zigzag is built](#how-its-built), with some code. If you're more interested in the launch and getting users, skip to [the second half](#launching).
+
+## Arc
+
+I've used Arc since August 22, 2023. I know the date because it's on the member card Arc made for everyone:
+
+<Figure src={arcCardImg} alt="My Arc member card, dated August 22, 2023" caption="My Arc member card, from August 22, 2023." />
+
+For three years it was just how I used a computer. I pushed it on a lot of friends, including one who has never cared about browsers in his life. When The Browser Company announced Arc was shutting down, he texted me that same night asking what he was supposed to use now, and whether I could make one.
+
+I wanted to say yes, but first I wanted to check that nobody had already done it properly. I tried Dia, The Browser Company's new browser, and without its AI assistant it felt like a strange version of Chrome. I tried Zen, which is where most Arc people seem to be going, and it's built on Firefox's engine and never felt like a Mac app to me. Orion came closest, it's WebKit and feels native, but it's closed source and doesn't work the way Arc does. Search, another WebKit browser, had thousands of stars on GitHub, and when I actually used it, sites broke and the animations got in the way. Most of the rest were Chromium with a sidebar.
+
+So for a while I just used Safari. That's actually what convinced me. Safari's engine is great. It's fast and light on battery and Apple patches it. What's boring about Safari is everything around the page, and that's exactly the part that made Arc feel like Arc. That part I could build.
+
+## Eddy
+
+This wasn't my first browser. Over the summer I spent weeks on one called Eddy, a "focus browser" where you could only have one page open and had to "anchor" to something before wandering off. I forked it from Helium, which is a fork of ungoogled Chromium.
+
+It was a bad decision, and I knew it pretty quickly. The Chromium source is around 100 GB. A build took three to four hours on my MacBook, so I'd change one thing in the morning and see the result after lunch. And even if I'd finished it, keeping a Chromium fork patched is a job for a team. I couldn't have kept up.
+
+After Eddy I tried once more, a simple Arc-style browser on WebKit. That went faster, but the AI at the time kept getting the small things wrong, and no matter how many times I asked, it never got to a point where I'd want to use it every day. I dropped that one too.
+
+Then on October 23, with Claude Code and Opus 5.5, I tried a third time. Thirty minutes later I had a sidebar, spaces, pages in rounded cards and a working Peek window, and it felt right. I said "wow" out loud. That night I sent this to some friends:
+
+<Figure src={firstDemoImg} alt="The first Zigzag demo: a sidebar with spaces and pages in rounded cards" caption="The first Zigzag demo I sent to friends, a few hours in." />
+
+I've thought about this jump a lot. In June, the AI could build most of a browser. By October, it could build the details. That sounds small, but the details are the whole difference between something you demo once and something you actually use. And once the AI could do that, the hard part of making Zigzag moved somewhere else entirely.
+
+## How it's built
+
+Zigzag is Swift and AppKit around WKWebView. No Chromium, no Electron. Because the engine already ships with macOS, the app downloads in under 20 MB. Arc is 871 MB on my Mac. Apple handles the engine's security updates, and things like passkeys, iCloud Keychain and FairPlay (so Spotify works) behave like they do in Safari.
+
+The way I work is pretty simple. I decide what Zigzag does and how it should feel. Claude writes most of the code. I read the important parts, and I test everything by using Zigzag as my only browser, so if something breaks I usually find it within an hour. There are over 3,000 tests and a `specs/` folder that describes every behavior in plain English, with each line linked to the test that checks it. When an AI is writing most of the code and I'm shipping several releases a day, that's the only way I can be sure a fix over here didn't break something over there.
+
+The price of WebKit is that the web assumes you're Chrome. Almost everything technically interesting in Zigzag comes from working around that.
+
+### Chrome extensions
+
+People don't switch browsers if their password manager stops working, so this was the first thing that had to be right.
+
+macOS 15.4 added `WKWebExtension`, which lets WebKit run web extensions. That's why Zigzag needs 15.4. Zigzag downloads extensions straight from the Chrome Web Store as CRX3 files, and before loading one it checks two signatures: the developer's, and the Web Store's own, so nobody can hand you a modified package that pretends to be from the store.
+
+```swift
+// The developer's key is the one whose hash is the ID; its signature is the one that matters.
+let developer = proofs.filter { Array(SHA256.hash(data: $0.key).prefix(16)) == crxID }
+guard developer.contains(where: { Self.verify($0, message: message) }) else { throw Failure.unsigned }
+// And the store's: a developer-only signature means it didn't come from the store.
+let publisher = proofs.filter { Array(SHA256.hash(data: $0.key)) == publisherKeyHash }
+guard publisher.contains(where: { Self.verify($0, message: message) }) else { throw Failure.notFromStore }
+```
+
+WebKit's extension support gets you surprisingly far, but it's missing a lot of Chrome APIs that real extensions call. So Zigzag has a bridge. Each missing Chrome namespace is a small Swift class, and every call goes through one place that checks the extension actually asked for that permission and the person granted it:
+
+```swift
+protocol BridgeNamespace: AnyObject {
+    /// The namespace's name, as in `chrome.<name>`.
+    static var name: String { get }
+    /// The manifest permission an extension needs to use it.
+    static var permission: String { get }
+    func call(_ fn: String, args: [Any], extensionID: String) async throws -> Any?
+}
+
+// Every call from an extension passes this first.
+guard Self.allows(type(of: namespace).permission, for: context) else {
+    reply(["error": "\(ns) needs the “\(type(of: namespace).permission)” permission"], nil)
+    return
+}
+```
+
+Tampermonkey was the hardest one. Modern Tampermonkey runs on Chrome's `userScripts` API, and WebKit has nothing like it. In Chrome, user scripts run in their own isolated world, separate from the page and from the extension, because a script from Greasy Fork is code nobody at Tampermonkey wrote. Zigzag rebuilds that with a separate `WKContentWorld` per extension:
+
+```swift
+let world = main ? WKContentWorld.page
+                 : WKContentWorld.world(name: Self.worldName(extensionID: id, worldID: worldID))
+```
+
+Someone on LINUX DO told me Tampermonkey didn't work on my first day there. The fix shipped about 13 hours later. Now 1Password, Bitwarden, Dark Reader and Tampermonkey work, and Firefox extensions install too. Some things never will, like anything that needs Chrome's debugging protocol.
+
+### Importing from Arc
+
+If switching means rebuilding your whole sidebar, people won't switch. Zigzag reads Arc's sidebar and brings over spaces, pins, folders, history and passwords, and it can bring your sign-ins too, so you're still logged in to Google and GitHub on first launch.
+
+Arc is Chromium underneath, so its passwords and cookies are encrypted the way Chromium does it on macOS. The key lives in your Keychain as "Arc Safe Storage" (macOS asks you before Zigzag can read it), and it's turned into an AES key with a salt that's literally the word "saltysalt":
+
+```swift
+/// Chromium on macOS: PBKDF2-HMAC-SHA1, salt "saltysalt", 1003 rounds, 16 bytes.
+static func deriveKey(_ secret: Data) -> Data {
+    var key = Data(count: kCCKeySizeAES128)
+    let salt = Data("saltysalt".utf8)
+    // ... CCKeyDerivationPBKDF(kCCPBKDF2, secret, salt, kCCPRFHmacAlgSHA1, 1003, &key)
+    return key
+}
+```
+
+Nothing leaves the Mac, and private windows never get the imported cookies.
+
+### The ad blocker that broke a school website
+
+A student told me their school's teaching platform was a blank white page in Zigzag but worked in Chrome. It took a while to see why. The site loads FingerprintJS before anything else. EasyPrivacy blocks FingerprintJS. So the next line of the site's code called `Fingerprint2`, which didn't exist, and the whole page died.
+
+In Chrome with uBlock Origin this never happens, because uBlock doesn't just block some scripts. It quietly swaps them for harmless fakes, and a lot of sites depend on that without anyone knowing. WebKit's content blocker can only block, never redirect. So Zigzag adds its own fake, but only if the page actually asked for the real one:
+
+```js
+// Whether the page asked for the library: one of its scripts is at one of the blocked addresses.
+const askedFor = () => Array.prototype.some.call(document.scripts, (script) => blocked.test(script.src));
+if (!('Fingerprint2' in window)) {
+  Object.defineProperty(window, 'Fingerprint2', {
+    configurable: true,
+    get: () => (askedFor() ? standIn() : undefined),
+    set: (value) => Object.defineProperty(window, 'Fingerprint2', { value, writable: true, configurable: true, enumerable: true }),
+  });
+}
+```
+
+The fake returns a random ID per site instead of a real fingerprint, so the site works and still learns nothing about your Mac.
+
+Most site fixes don't even need an app update. Zigzag downloads a small filter list from my site every 12 hours, written in uBlock Origin's syntax. DeepSeek, for example, shows "Please check your browser extensions" if its telemetry gets blocked three times, so the fix is two lines that give it an empty answer instead:
+
+```
+chat.deepseek.com##+js(prevent-fetch, /api/v0/telemetry)
+chat.deepseek.com##+js(prevent-xhr, /api/v0/telemetry)
+```
+
+### Things I decided not to do
+
+There's no AI in the browser. Every new browser seems to be adding an AI sidebar, and I didn't want people paying for a second AI on top of the one they already use. Instead there's an optional MCP server, off by default, so your own AI app can use the browser if you want. It can never read password fields.
+
+There's no telemetry, not even an install ID, which was my original plan. The update check only sends the app version. I'll explain how I count users anyway further down.
+
+And it's properly open source. I first picked the Functional Source License, which stops anyone from making a competing product for two years. Then I realized a fork of a browser is a competing browser, and forks were exactly what I wanted. If I ever stop working on Zigzag, I want someone to be able to pick it up. So it's Apache 2.0, with the name and logo kept separate. Watching Arc get switched off made that feel important.
+
+## Taste
+
+I'm proud of the extension work, and it was real work. But if Claude Code could build it for me, it can build it for anybody, so I don't think it's what separates Zigzag from the other clones.
+
+What the AI doesn't have is an opinion. When I asked it to design Zigzag, I got the average of every app it has ever seen: rounded cards, soft shadows, a gradient, some frosted glass. Every version looked fine. Every version also looked like every other app made with AI, which is why so many Arc clones feel the same even though they're built in completely different ways. I threw out a plain colored sidebar, frosted glass, a Braun-style one, a Teenage Engineering-style one and a gray and amber one before I got something that felt like its own thing: Arc's warmth, a soft color per space, and some of Teenage Engineering's restraint. I kept the icon I drew myself over every one the AI made.
+
+Most of my time now goes into decisions like that, and into noticing. The AI works on one screen at a time, so if nobody's watching, every screen drifts into its own spacing and its own little style. It'll invent a clever new way to do something that already has a normal Mac way, and I have to take it out, because Arc was only new in a few places and completely ordinary everywhere else. It will build a feature that technically works and feels wrong, and it won't tell you it feels wrong.
+
+The details are the part I care about most, and they're also the part nobody ever reports. A tab you drag out of the window should become its own window. A tab that hasn't loaded yet shouldn't look loaded. A fast flick to the edge of the screen should open the sidebar as smoothly as a slow one. A menu should slide up from your cursor the way macOS menus do, not flip above it. A reload icon shouldn't sit one point lower than the buttons beside it. Nobody files an issue about any of that. They just feel that an app is a bit cheap, and one day they stop opening it.
+
+None of those fixes are hard. Noticing them is. I think that's most of the answer to the question I started with. Everyone has the same tools, and the clones that feel like slop are the ones where nobody looked at every screen and said "not yet."
+
+## Launching
+
+I thought that if I built something good, people would find it. That was naive.
+
+Around four days in I almost quit. A friend who has never programmed made his own Arc-style browser with Electron and Codex in under thirty minutes. It was rough, he gave up on it right away, and then he asked me why I wasn't just using Chromium because he wanted Chrome extensions. Meanwhile r/ArcBrowser had a new clone almost every day. If anyone can make one in half an hour, why would anyone use mine?
+
+What kept me going was reading what Arc users were actually saying. They weren't asking for more features. They were scared. They'd been burned once by a company switching off their browser, and they didn't want to move to some solo developer's project that would be dead by February. That's not something you fix with code. You fix it by using your own thing every day, fixing problems fast, and making it open source so it can't disappear. So that's what I decided I was competing on.
+
+### Reddit
+
+My plan was to post on r/ArcBrowser, since that's where everyone leaving Arc is. It turns out they don't allow posts about alternatives at all. Everything goes into one megathread, which by then was just a wall of other clones. I posted there and almost nobody saw it. Then I found out my Reddit account had so little karma that any comment with a link was hidden automatically. I looked at r/macapps next: 300 karma, a 60 day old account, and one app post every 30 days even if it gets removed. I didn't qualify for anything.
+
+I'd spent a lot of time on the post and none on where it was going.
+
+### Why Search had thousands of stars
+
+The thing that bothered me most was Search. It's another WebKit browser for Mac, it had nearly 3,000 GitHub stars while I had almost none, and I thought Zigzag was better. I was annoyed about it for a while. Then I looked at its star history, and almost all of the stars came in a single week in late September. It's made by a design studio that already had an audience. Since that week it's grown about 20 stars a day.
+
+That changed how I thought about all of it. Most attention seems to come from a few moments where a lot of people see something at the same time. Search had one of those, and I hadn't made any yet.
+
+### LINUX DO
+
+The first moment that worked was [my post on LINUX DO](https://linux.do/t/topic/3137690), one of the biggest Chinese developer forums, on November 7. Their rules say promotional posts can't be written by AI, so I typed it myself, typos and all. A few thousand people have read it, and the thread has hundreds of replies.
+
+I think the thread did more than the post. People reported bugs and I fixed them while they were still in the conversation. Tampermonkey worked about 13 hours after someone said it didn't. The next morning someone asked why a browser made by a Chinese developer didn't have Chinese, and under three hours later there was a Simplified Chinese version, which I went through string by string myself. That same day, someone I'd never talked to shared Zigzag in a 107-person WeChat group. I think "I reported a bug and it was fixed that night" is the most convincing thing anyone can say about a small project.
+
+### Product Hunt
+
+The next day I tried Product Hunt for the first time, with a brand new account, no followers and no video. Launches start at 4pm in Shanghai, so most of the voting happened while I was asleep. Zigzag got featured and ended up #8 of the day, mostly against companies with actual teams. Stars went from a handful to over a hundred in two days.
+
+My first reaction was a bit of disappointment, which seems silly now. The products above me mostly had teams and marketing behind them, and I was asleep for most of it.
+
+### Hacker News
+
+Hacker News was the one I wanted most, and my account was too new to post a Show HN. I emailed the moderators. A week later one of them, Tom, wrote back with advice on how to structure the post and offered to read a draft. I rewrote it in my own words and he let it through on November 14.
+
+I posted on a Saturday night, which is Saturday morning in New York. Forty minutes later it had one point and I assumed it was dead. A few days later it got picked up again and hit the front page, with over a hundred points and dozens of comments, and GitHub stars nearly doubled in a day.
+
+The comments were the best criticism I've had. Would a browser made by one high schooler still exist next year? Can something built with this much AI be trusted with passwords? Why does the world need another Arc clone? Those are fair questions and I don't think I fully answered them. But answering them honestly, in the open, did more for Zigzag than the post itself.
+
+<Figure src={starsImg} alt="GitHub stars over the first month, with a step at Product Hunt and another at Hacker News"><Fragment slot="caption">Star history as of November 21, 2026. The live chart is on <a href="https://star-history.com/#ZigaoWang/zigzag&Date">star-history.com</a>.</Fragment></Figure>
+
+### Counting users without telemetry
+
+I promised no analytics, but I still wanted to know if anyone was using it. It turns out I didn't need tracking. Every copy of Zigzag checks the update feed every few hours, and the request only says which version it is. Like any website, my server writes a normal access log, so I count how many different addresses fetched the feed each day. The counting keeps only the daily totals, and I don't look at the addresses themselves. It's not exact, since a laptop moving between home and school counts twice and an office behind one address counts once, but it's a fair estimate.
+
+<Figure src={usersImg} alt="Line chart of Macs using Zigzag each day and bar chart of downloads, November 6 to 20, with Product Hunt and Hacker News marked" caption="Daily active Macs and downloads, November 6 to 20." />
+
+This is the chart I'm proudest of. Downloads jump after every launch and drop off within a few days. But daily users didn't drop with them. After Product Hunt they settled at around 200 and stayed there for a week, and after Hacker News they went up to around 500 and stayed there too. I can't prove why they stayed, but I have a guess. Switching was painless, because Arc import brought their whole sidebar and their sign-ins over in one go. The extensions they relied on mostly just worked. It felt like a Mac app instead of a web page in a window. And when something broke, it was usually fixed within a day, often by the next morning. None of those things on their own is a reason to switch browsers. Together, I think, they're a reason not to switch back.
+
+### Keeping up
+
+Then the issues started, every day. In the first month there were over 300, and almost all of them are closed now. Some people became part of the project without me asking: vandenbulckjean built profiles for each space, philigrin made the top bar take on the color of the page, Lakeland97 alone opened well over a hundred issues and pull requests, and frarees tests fixes on macOS versions I don't have.
+
+Claude Code does most of the triage. It can read an issue, find the cause, write the fix and draft the reply. When there were a few a day, I just let it go through everything. At ten or twenty a day that fell apart, and I've only recently got a workflow that holds up. I still read every pull request before it merges, because one bad change in a browser can hurt people.
+
+## What I think now
+
+A month ago I thought building the thing was the hard part. For a project like this, it isn't anymore, for anyone. The tools will keep getting better and soon they'll do even more of what I do now, which probably means the deciding and the noticing will matter more over time, not less.
+
+I also learned that getting noticed is its own skill, and I'm only just starting to learn it. Every place I posted wanted something different, and the only thing that worked everywhere was being honest and fixing things fast.
+
+And the numbers are nice, but they're just numbers. A few hundred stars is a few hundred clicks. What I actually want is for Zigzag to keep getting better until the people using it would miss it if it disappeared. That's how I felt about Arc. If anyone ever feels that way about something I made, that'll mean more than any ranking.
+
+Zigzag is still a beta. There's no sync between Macs except passwords, no iPhone version, and it needs macOS 15.4 or newer. If you're on a Mac and still looking for somewhere to go after Arc, try it and tell me what breaks. I'll write here again when there's something worth writing about.
+
+- [zigzagbrowser.com](https://zigzagbrowser.com)
+- [github.com/ZigaoWang/zigzag](https://github.com/ZigaoWang/zigzag)
+- `brew install --cask zigaowang/tap/zigzag`
+- [Show HN](https://news.ycombinator.com/item?id=50496787), [Product Hunt](https://www.producthunt.com/products/zigzag-browser), [LINUX DO](https://linux.do/t/topic/3137690)
