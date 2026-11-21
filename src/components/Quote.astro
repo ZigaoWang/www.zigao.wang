@@ -1,0 +1,33 @@
+---
+// A plain blockquote in the site's usual style, with who said it underneath.
+interface Props {
+	name: string;
+	/** Where it was said, like "on GitHub" or "by email". */
+	source?: string;
+	/** Link to the original message, when there is one. */
+	href?: string;
+	translation?: string;
+	lang?: string;
+}
+
+const { name, source, href, translation, lang } = Astro.props;
+// Link just the place, not the "on" or "by" before it.
+const [, lead = '', place = source] = source?.match(/^((?:on|by) )?(.*)$/) ?? [];
+---
+
+<blockquote>
+	<p lang={lang}><slot /></p>
+	<p class="by">{name}{source && <>, {lead}{href ? <a href={href}>{place}</a> : place}</>}{translation && <span class="tr">. "{translation}"</span>}</p>
+</blockquote>
+
+<style>
+	p {
+		margin: 0;
+	}
+	.by {
+		margin-top: 0.35rem;
+		font-style: normal;
+		font-size: 0.85em;
+		opacity: 0.8;
+	}
+</style>
